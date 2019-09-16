@@ -3,16 +3,32 @@ function Quick-Note {
         [string] $a,
         [switch] $x)
 
-    if($x -And $note)
+    #Clers cache if switch on
+    if($x -And $notes)
     {
-        Clear-Variable -Scope Global -Name note
-    }
-    elseif ($a)
-    {
-        $global:note += "> " + $a + "`n"
+        Clear-Variable -Scope Global -Name notes
     }
 
-    outputNote($note)
+    #Initializes cache if first run
+    if(!$notes)
+    {
+        $global:notes = New-Object System.Collections.ArrayList
+    }
+    
+    #Appends new note to cache
+    if ($a)
+    {
+        $datetime = Get-Date
+        $id = $notes.Count + 1
+        $newnote = New-Object System.Object
+        $newnote | Add-Member -MemberType NoteProperty -Name Id -Value $id
+        $newnote | Add-Member -MemberType NoteProperty -Name DateTime -Value $datetime
+        $newnote | Add-Member -MemberType NoteProperty -Name Note -Value $a
+        $notes.Add($newnote)
+    }
+    
+    #Print cache to console
+    PrintNotes($notes)
 
 <#
 .SYNOPSIS
@@ -44,14 +60,16 @@ PS> Quick-Note
 #>
 }
 
-function outputNote([string]$note)
+#Print note cache to screen
+function PrintNotes([System.Collections.ArrayList]$notes)
 {
     $spacer = "༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻"
-    Write-Host `n$spacer`n
-    Write-Host $note
-    Write-Host $spacer`n
+    Write-Host $spacer
+    $notes | Format-Table Id, @{Label="DateTime"; Expression={$_.DateTime.ToString("MM/dd HH:mm")}}, Note 
+    Write-Host $spacer
 }
 
+#Making module alias available
 New-Alias -Name cn -Value Quick-Note
-
+#Exposing module main function
 Export-ModuleMember -Function Quick-Note -Alias cn

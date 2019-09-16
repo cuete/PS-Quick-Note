@@ -3,32 +3,26 @@ function Quick-Note {
         [string] $a,
         [switch] $x)
 
-    #Clers cache if switch on
-    if($x -And $notes)
-    {
-        Clear-Variable -Scope Global -Name notes
-    }
-
     #Initializes cache if first run
     if(!$notes)
     {
         $global:notes = New-Object System.Collections.ArrayList
     }
-    
+
+    #Clears cache
+    if($x)
+    {
+        ClearNotes
+    }
+
     #Appends new note to cache
     if ($a)
     {
-        $datetime = Get-Date
-        $id = $notes.Count + 1
-        $newnote = New-Object System.Object
-        $newnote | Add-Member -MemberType NoteProperty -Name Id -Value $id
-        $newnote | Add-Member -MemberType NoteProperty -Name DateTime -Value $datetime
-        $newnote | Add-Member -MemberType NoteProperty -Name Note -Value $a
-        $notes.Add($newnote)
+        AppendNote($a)
     }
     
     #Print cache to console
-    PrintNotes($notes)
+    PrintNotes
 
 <#
 .SYNOPSIS
@@ -60,14 +54,44 @@ PS> Quick-Note
 #>
 }
 
+function AppendNote($newNoteText)
+{
+    $datetime = Get-Date
+    $id = $notes.Count + 1
+    $newnote = New-Object System.Object
+    $newnote | Add-Member -MemberType NoteProperty -Name Id -Value $id
+    $newnote | Add-Member -MemberType NoteProperty -Name DateTime -Value $datetime
+    $newnote | Add-Member -MemberType NoteProperty -Name Note -Value $newNoteText
+    $notes.Add($newnote)
+}
+
+function EditNote($id)
+{
+    #TODO
+}
+
+function DeleteNote($id)
+{
+    #TODO
+}
+
 #Print note cache to screen
-function PrintNotes([System.Collections.ArrayList]$notes)
+function PrintNotes()
 {
     $spacer = "༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻༻"
+    $originalForegroundColor = $host.ui.RawUI.ForegroundColor
+    $host.ui.RawUI.ForegroundColor = “Magenta”
     Write-Host $spacer
     $notes | Format-Table Id, @{Label="DateTime"; Expression={$_.DateTime.ToString("MM/dd HH:mm")}}, Note 
     Write-Host $spacer
+    $host.ui.RawUI.ForegroundColor = $originalForegroundColor
 }
+
+function ClearNotes()
+{
+    Clear-Variable -Scope Global -Name notes
+}
+
 
 #Making module alias available
 New-Alias -Name cn -Value Quick-Note
